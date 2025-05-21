@@ -1,0 +1,12 @@
+ftfy
+regex
+matplotlib
+ninja
+pyyaml
+tqdm
+tensorboard
+ipykernel
+ipywidgets
+diffusers
+accelerate
+gdown

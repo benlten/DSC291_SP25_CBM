@@ -1,0 +1,90 @@
+dataset:
+  name: celebahq40
+  transforms_1: (0.5)
+  transforms_2: (0.5)
+  img_size: 256
+  batch_size: 64
+  test_batch_size: 100
+  num_channels: 3
+model:
+  pretrained: models/checkpoints/stylegan2-celebahq-256x256.pkl
+  type: cbae_stygan2
+  latent_noise_dim: 512
+  input_latent_dim: 10
+  has_concepts: True
+  # the mapping network outputs (batch_size, 14, 512) sized latents, where 512-vector is repeated 14 times
+  num_ws: 14
+  concepts: 
+      concept_bins: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 10]
+      concept_names: [
+        "5_o_Clock_Shadow",
+        "Arched_Eyebrows",
+        "Attractive",
+        "Bags_Under_Eyes",
+        "Bald",
+        "Bangs",
+        "Big_Lips",
+        "Big_Nose",
+        "Black_Hair",
+        "Blond_Hair",
+        "Blurry",
+        "Brown_Hair",
+        "Bushy_Eyebrows",
+        "Chubby",
+        "Double_Chin",
+        "Eyeglasses",
+        "Goatee",
+        "Gray_Hair",
+        "Heavy_Makeup",
+        "High_Cheekbones",
+        "Male",
+        "Mouth_Slightly_Open",
+        "Mustache",
+        "Narrow_Eyes",
+        "No_Beard",
+        "Oval_Face",
+        "Pale_Skin",
+        "Pointy_Nose",
+        "Receding_Hairline",
+        "Rosy_Cheeks",
+        "Sideburns",
+        "Smiling",
+        "Straight_Hair",
+        "Wavy_Hair",
+        "Wearing_Earrings",
+        "Wearing_Hat",
+        "Wearing_Lipstick",
+        "Wearing_Necklace",
+        "Wearing_Necktie",
+        "Young",
+        "unknown",
+      ]
+      # just dummy mostly, not being used (need to check in basic.py)
+      emb_size: 16
+      concept_output: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 10]
+      types: ["bin", "bin", "bin", "bin", "bin", 
+              "bin", "bin", "bin", "bin", "bin", 
+              "bin", "bin", "bin", "bin", "bin", 
+              "bin", "bin", "bin", "bin", "bin", 
+              "bin", "bin", "bin", "bin", "bin", 
+              "bin", "bin", "bin", "bin", "bin", 
+              "bin", "bin", "bin", "bin", "bin", 
+              "bin", "bin", "bin", "bin", "bin", "cat"]
+
+train_config:
+  epochs: 50
+  recon_lr: 0.0002
+  conc_lr: 0.0002
+  betas: (.5, .99)
+  save_model: True
+  use_cuda: True
+  log_interval: 100
+  steps_per_epoch: 1000
+  pl_prob_thresh: 0.7
+  plot_loss: True
+evaluation:
+  generation: True
+  save_images: True
+  save_concept_image: True
+  save_results: True
+

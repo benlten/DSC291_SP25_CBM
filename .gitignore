@@ -1,0 +1,15 @@
+archive
+datasets/generated
+generation_checkpoints
+images/
+models/checkpoints
+results
+scripts/submit*
+*.out
+
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info
+.pytest_cache
+.ipynb_checkpoints

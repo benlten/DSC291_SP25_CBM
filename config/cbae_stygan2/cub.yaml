@@ -1,0 +1,53 @@
+dataset:
+  name: cub
+  transforms_1: (0.5)
+  transforms_2: (0.5)
+  img_size: 256
+  batch_size: 16
+  test_batch_size: 100
+  num_channels: 3
+model:
+  pretrained: models/checkpoints/stylegan2-cub-256x256.pkl
+  type: cbae_stygan2
+  latent_noise_dim: 512
+  input_latent_dim: 10
+  has_concepts: True
+  # the mapping network outputs (batch_size, 14, 512) sized latents, where 512-vector is repeated 14 times
+  num_ws: 14
+  concepts: 
+      concept_bins: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 40]
+      concept_names: [
+        'Small size 5 to 9 inches',
+        'Perching like shape',
+        'Solid breast pattern',
+        'Black bill color',
+        'Bill length shorter than head',
+        'Black wing color',
+        'Solid belly pattern',
+        'All purpose bill shape',
+        'Black upperparts color',
+        'White underparts color',
+      ]
+      emb_size: 16
+      concept_output: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 40]
+      types: ["bin", "bin", "bin", "bin", "bin", "bin", "bin", "bin", "bin", "bin", "cat"]
+
+
+train_config:
+  epochs: 50
+  recon_lr: 0.0002
+  conc_lr: 0.0002
+  betas: (.5, .99)
+  save_model: True
+  use_cuda: True
+  log_interval: 100
+  steps_per_epoch: 1000
+  ## getting nans at lower batch size (for CB-AE) with 0.9 (probably classifier is not as good as with celebahq)
+  pl_prob_thresh: 0.75
+  plot_loss: True
+evaluation:
+  generation: True
+  save_images: True
+  save_concept_image: True
+  save_results: True
+
