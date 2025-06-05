@@ -1,37 +1,27 @@
-# Interpretable Generative Models through Post-hoc Concept Bottlenecks (CVPR 2025)
+# Interpretable Generative Models through Post-hoc Concept Bottlenecks (CVPR 2025) [Reproduction]
 
-### [Paper](https://arxiv.org/abs/2503.19377) | [Project Page](https://lilywenglab.github.io/posthoc-generative-cbm/)
+**Authors**: Benjamin TenWolde, Yijia Tang, Yacun Wang, Yixuan Li
 
-This is the official repository for the **CVPR 2025** paper: [Interpretable Generative Models through Post-hoc Concept Bottlenecks](https://arxiv.org/abs/2503.19377)
+We attempt to reproduce parts of the experiments **CVPR 2025** paper: [Interpretable Generative Models through Post-hoc Concept Bottlenecks](https://arxiv.org/abs/2503.19377) and make further analysis to the concept quality and control strengths, as originally implemented in this [GitHub Repository](https://github.com/Trustworthy-ML-Lab/posthoc-generative-cbm).
 
-* We propose two novel methods to enable interpretability for generative models:
-    * **CB-AE**: The 1st method for post-hoc interpretable generative models. **CB-AE** can be trained efficiently with a frozen pretrained generative model, without real concept-labeled images.
-    * **Concept Controller**: An optimization-based concept intervention method with improved steerability and higher image quality.
-* We show our methods have **higher steerability** (+31% and +28% better than prior SOTA) and **lower cost** (4-15x faster to train) on deep generative models including GANs and diffusion models. 
+* The paper proposed two novel methods to enable interpretability for generative models:
+  * **CB-AE**: The 1st method for post-hoc interpretable generative models. **CB-AE** can be trained efficiently with a frozen pretrained generative model, without real concept-labeled images.
+  * **Concept Controller**: An optimization-based concept intervention method with improved steerability and higher image quality.
+* The paper shows the purposed methods have **higher steerability** (+31% and +28% better than prior SOTA) and **lower cost** (4-15x faster to train) on deep generative models including GANs and diffusion models.
 
 <p align="center">
     <img src="https://lilywenglab.github.io/posthoc-generative-cbm/assets/fig1_teaser_website_example.svg" width="90%" alt="Overview">
 </p>
 
-## Table of Contents
-
-* [Setup](#setup)
-    * [Environment setup instructions](#environment-setup-instructions)
-    * [Download base model and CB-AE/CC weights](#download-base-model-and-cb-aecc-weights)
-    * [Download concept classifier weights](#download-concept-classifier-weights)
-* [Demo](#demo)
-* [Training](#training)
-* [Evaluation](#evaluation)
-* [Results](#results)
-* [Sources](#sources)
-* [Cite this work](#cite-this-work)
-
 ## Setup
+
+We present the setup for our reproduction environments, which focused on the CelebA-HQ and CUB datasets and the StyleGAN2 backbone model.
 
 ### Environment setup instructions
 
 * Conda environment installation:
-    ```
+
+    ```sh
     conda create -n posthocgencbm python=3.8
     conda install nvidia/label/cuda-11.7.0::cuda-nvcc cudatoolkit
     pip install torch==1.13.1+cu117 torchvision==0.14.1+cu117 torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu117
@@ -39,87 +29,99 @@ This is the official repository for the **CVPR 2025** paper: [Interpretable Gene
     ```
 
 * Download the CelebA-HQ-pretrained StyleGAN2 base model from [below](#download-base-model-and-cb-aecc-weights) and test the environment using `python3 eval/test_stygan2.py`. It should save a StyleGAN2 generated image in `images/`. If you get CUDA runtime errors (during "Setting up PyTorch plugin..."), use this:
-    ```
+
+    ```sh
     export CUDA_HOME=$CONDA_PREFIX
     export CPLUS_INCLUDE_PATH=$CUDA_HOME/include:$CPLUS_INCLUDE_PATH
     export LIBRARY_PATH=$CUDA_HOME/lib:$LIBRARY_PATH
     ```
 
-### Download base model and CB-AE/CC weights
+* We use `models/checkpoints` for saving/loading CB-AE/CC checkpoints and classifier weights
 
-* We use `models/checkpoints` for saving/loading CB-AE/CC checkpoints
-    ```
+    ```sh
     mkdir models/checkpoints
     cd models/checkpoints
     ```
 
+### Download base model and CB-AE/CC weights
+
 * CelebA-HQ-pretrained StyleGAN2 (from [[2]](#sources)):
-    ```
-    ## base model weights
+
+    ```sh
+    ## base model weights (for training + evaluation)
     wget https://api.ngc.nvidia.com/v2/models/nvidia/research/stylegan2/versions/1/files/stylegan2-celebahq-256x256.pkl
-    ## CB-AE weights
+
+    ## CB-AE weights (for evaluation)
     gdown https://drive.google.com/uc?id=1RBdjcBDbpAoW5qOkG-rBonIpcBApBF-q
-    ## CC weights
+
+    ## CC weights (for evaluation)
     gdown https://drive.google.com/uc?id=1fh2XV2ttrCc88-SgfR9f-JcwG1eent_U
     ```
 
-* CelebA-HQ-pretrained DDPM-256x256 (from [[3]](#sources)):
-    ```
-    ## base model weights get downloaded automatically via HuggingFace when using "-e cbae_ddpm" (i.e. any config using this DDPM model)
-    ## CB-AE weights
-    gdown https://drive.google.com/uc?id=1kl5pDqzm0M73r8H74AfSokgDFGAF0szb
+* CUB-pretrained StyleGAN2 (trained using [[4]](#sources)):
+
+    ```sh
+    ## base model weights (for training + evaluation)
+    gdown https://drive.google.com/uc?id=1sW7WgvUFH2REZPQx88BjFneoItP9C0XB
     ```
 
 ### Download concept classifier weights
 
-* [ResNet18 CelebA-HQ](https://drive.google.com/uc?id=1xbR7MbERV7wMnU4WcsNSDriYXBqsy_jZ)-based classifiers for training and visualization.
-* [ViT-L-16 CelebA-HQ](https://drive.google.com/uc?id=1XD6Badmf4QwRrdy6MbOr-mefyu1k_OIy)-based classifiers for quantitative evaluation.
-    ```
-    cd models/checkpoints
-    ## ResNet18 CelebA-HQ
+Considering limitations on hardware and experiments, we have only used one set of classifier weights for each dataset
+
+* CelebA-HQ (256x256): ResNet18
+
+    ```sh
     gdown https://drive.google.com/uc?id=1xbR7MbERV7wMnU4WcsNSDriYXBqsy_jZ
     unzip celebahq_rn18_conclsf.zip
-    ## ViT-L-16 CelebA-HQ (relatively large file of ~8.4 GB, so download only if you want to do evaluations)
-    gdown https://drive.google.com/uc?id=1XD6Badmf4QwRrdy6MbOr-mefyu1k_OIy
-    unzip celebahq_vitl16_conclsf.zip
-    ## ResNet18 CelebA (64x64)
-    gdown https://drive.google.com/uc?id=15m6xCI5JPZaz-BaSoCjHCJCeof53G4rC
-    unzip celeba64_rn18_conclsf.zip
-    ## ResNet50 CUB (256x256)
+    ```
+
+* CUB (256x256): ResNet50
+
+    ```sh
     gdown https://drive.google.com/uc?id=1vW5Q41FGHXdTqbraz54AXQ2uoBKispLD
     unzip cub_rn50_conclsf.zip
-    ## ResNet50 CUB (64x64)
-    gdown https://drive.google.com/uc?id=1vvlWd4MWB62-lyq2sPQAVhf5Pqc5Mnzf
-    unzip cub64_rn50_conclsf.zip
     ```
+
 * Other concept classifiers can be trained using `train/train_conclsf.py`.
-
-## Demo
-
-* Follow `notebooks/visualize_interventions.ipynb` for concept interventions demo with CelebA-HQ-pretrained StyleGAN2 with CB-AE.
-    * Note: Before the notebook, please [download](#download-concept-classifier-weights) concept classifier weights (ResNet18) for visualization.
-
 
 ## Training
 
-* Use `bash scripts/train_cbae.sh` to train a CB-AE for a CelebA-HQ-pretrained StyleGAN2 with supervised classifiers as pseudo-label source.
-* Some important arguments to specify are:
-    * `-e`: specify which config file from the `config/` folder to use (e.g. `cbae_stygan2`).
-    * `-d`: specify dataset of base generative model (e.g. `celebahq`).
-    * `-t`: specify experiment name to be used as a suffix for saving logs, checkpoints, etc.
-    * `-p`: specify pseudo-label source $M$ for CB-AE/CC training (e.g. `supervised` for supervised-trained classifiers, `clipzs` for zero-shot CLIP classifiers, `tipzs` for few-shot adapted CLIP).
-* The same `train_cbae.sh` has commented out examples for training Concept Controller (CC).
+* The bash script `scripts/train_cbae.sh` provides commands to train a CB-AE for a CelebA-HQ-pretrained or CUB-pretrained StyleGAN2 with supervised classifiers as pseudo-label source.
+* Some important arguments specified are:
+  * `-e`: specify which config file from the `config/` folder to use (e.g. `cbae_stygan2`).
+  * `-d`: specify dataset of base generative model (e.g. `celebahq`).
+  * `-t`: specify experiment name to be used as a suffix for saving logs, checkpoints, etc.
+  * `-p`: specify pseudo-label source $M$ for CB-AE/CC training (e.g. `supervised` for supervised-trained classifiers, `clipzs` for zero-shot CLIP classifiers, `tipzs` for few-shot adapted CLIP).
 
 ## Evaluation
 
-* Use `bash scripts/eval_intervention.sh` for an example that runs steerability evaluation for `Smiling` concept for a CelebA-HQ StyleGAN2 CB-AE.
-* Some important arguments to specify are:
-    * `-e`, `-d`, and `-t` should be the same as from training (or use based on downloaded CB-AE/CC checkpoint, e.g. `celebahq_cbae_stygan2_thr90_sup_pl_cls8_cbae.pt` would use `-d celebahq -e cbae_stygan2_thr90 -t sup_pl_cls8`).
-    * `-c`: concept to intervene on (e.g. `Smiling` or `Mouth_Slightly_Open`).
-    * `-v`: desired concept value (e.g. `0` or `1` based on if desired target concept is `Smiling` or `Not Smiling`).
-    * `--optint`: use this for optimization-based interventions (not using this will use CB-AE interventions).
-    * `--visualize`: use this to visualize some examples (not using this will run the full quantitative evaluation).
-* The same `eval_intervention.sh` has commented out examples for evaluating StyleGAN2 CC and DDPM CB-AE.
+We have provided two bash scripts for evaluating steerability and concept accuracy metrics that best adapts to the original repository code. Note both files only support the experiments we reproduced, which is different from the original paper.
+
+* Use `bash scripts/eval_intervention_reproduce.sh <dataset> <arch> [optint]` for quantitatively running steerability evaluation for a CelebA-HQ (or CUB) StyleGAN2 CB-AE (or CC).
+  * The command line arguments for the bash script are, in this order:
+    * `dataset`: specify dataset to evaluate (i.e. `celebahq` or `cub`).
+    * `arch`: the architecture to evaluate (i.e. `cbae` or `cc`).
+    * `optint`: whether to use optimization-based interventions (not using this will use CB-AE interventions, default `false`). Note `cc` only supports `optint=true`.
+
+* Use `bash scripts/eval_concept_reproduce.sh <dataset> <arch>` for quantitatively running concept accuracy evaluation for a CelebA-HQ (or CUB) StyleGAN2 CB-AE (or CC).
+  * The command line arguments for the bash script are, in this order:
+    * `dataset`: specify dataset to evaluate (i.e. `celebahq` or `cub`).
+    * `arch`: the architecture to evaluate (i.e. `cbae` or `cc`).
+
+## Extension Experiments
+
+We have provided three extension experiments in jupyter notebook format:
+
+* `notebooks/visualize_interventions.ipynb`: Using pretrained StyleGAN + CelebA-HQ CB-AE framework.
+  * **Concept Entanglement**: Evaluate concept interventions and their effects on other untargeted concepts (swap + PGD): visualizing examples; quantifying the results
+  * **Concept Interpolation**: Concept Interpolation/Extrapolation: Visualizing examples
+
+* `random_concepts.ipynb`: Trained StyleGAN + CelebA-HQ CB-AE framework using dummy concepts.
+  * **Concept Leakage**: Evaluate concept interventions on StyleGAN + CelebA-HQ trained on random concepts (swap + PGD): visualizing examples; quantifying the results
+  * *Training Details*: Edit `config/cbae_stygan2_thr90` and `train/train_cbae_gan.py` to use dummy concepts and specify `-p clipzs` to use zero-shot CLIP classifer.
+  * *Trained Weights*: Download through [link](https://drive.google.com/file/d/15SqpFoEKwIES1ADVPInPzot-ULO_mPzU/view?usp=sharing).
+
 
 ## Results
 
@@ -155,8 +157,9 @@ This is the official repository for the **CVPR 2025** paper: [Interpretable Gene
 
 [3] [CelebA-HQ pretrained DDPM repo](https://huggingface.co/google/ddpm-celebahq-256)
 
+[4] [StyleGAN2-Ada PyTorch GitHub repo](https://github.com/NVlabs/stylegan2-ada-pytorch)
 
-## Cite this work
+## Citation
 
 A. Kulkarni, G. Yan, C. Sun, T. Oikarinen, and T.-W. Weng, [Interpretable Generative Models through Post-hoc Concept Bottlenecks](https://arxiv.org/abs/2503.19377), CVPR 2025
 
