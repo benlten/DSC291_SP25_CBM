@@ -122,32 +122,52 @@ We have provided three extension experiments in jupyter notebook format:
   * *Training Details*: Edit `config/cbae_stygan2_thr90` and `train/train_cbae_gan.py` to use dummy concepts and specify `-p clipzs` to use zero-shot CLIP classifer.
   * *Trained Weights*: Download through [link](https://drive.google.com/file/d/15SqpFoEKwIES1ADVPInPzot-ULO_mPzU/view?usp=sharing).
 
+## Key Results
 
-## Results
+### 1. Concept Steerability (Intervention Success Rate)
 
-### 1. Concept Steerability or Intervention Success Rate
-* Our CB-AE and CC improves steerability across GANs (+31%) and diffusion models (+28%) over the prior state-of-the-art method CBGM [[1]](#sources) while being 4-15x faster to train on average.
-<p align="center">
-    <img src="https://lilywenglab.github.io/posthoc-generative-cbm/assets/table3_posthocgencbm.png" width="90%" alt="Steerability Evaluation">
-</p>
+* The paper claimed stated CB-AE and CC improves steerability across GANs (+31%) and diffusion models (+28%) over the prior state-of-the-art method CBGM [[1]](#sources) while being 4-15x faster to train on average.
+* Reproduction on StyleGAN2 backbone: Our Result (Paper Result)
 
-### 2. Interpreting generated images
-* Our CB-AE (and CC) provide human-understandable concept predictions along with the generated images.
-<p align="center">
-    <img src="https://lilywenglab.github.io/posthoc-generative-cbm/assets/fig5_cbae_conc_examples.svg" width="90%" alt="Concept Predictions">
-</p>
+    | Steerability (%)      | CUB | CelebA-HQ |
+    |-------------|---------------------|-------------|
+    | **CB-AE**  | ~0* (10.52)                |  41.73 (40.27)         |
+    | **CB-AE+opt-int**   | 63.60 (65.11)        | 56.90 (61.66)     |
+    | **CC+opt-int**      | 65.28 (44.72)     | 68.10 (67.95)      |
 
-### 3. Concept intervention examples (CB-AE interventions)
-* Concept intervention (modifying concepts) in the CB-AE leads to appropriate changes in the resulting image generation, enabling controllable generation. 
+    \* At this time, we have no clue since all other experiments report expected numbers.
+* Some Examples from the paper:
+
 <p align="center">
     <img src="https://lilywenglab.github.io/posthoc-generative-cbm/assets/fig6_cbae_interv_examples.png" width="90%" alt="CB-AE Interventions">
 </p>
 
-### 4. Concept intervention examples (optimization-based interventions)
-* Optimization-based interventions also enable controllable generation with improved orthogonality (*i.e.* less change in other concepts, closer to the original generation) than CB-AE interventions.
+### 2. Optimization-based Interventions
+
+* Could enable controllable generation with improved orthogonality at test time
+* Some Examples from Reproduction
+
 <p align="center">
-    <img src="https://lilywenglab.github.io/posthoc-generative-cbm/assets/fig7_optint_examples.png" width="90%" alt="Optimization-based Interventions">
+    <img src="assets/1.png" width="20%" alt="Concept Steerability 1">
+    <img src="assets/2.png" width="20%" alt="Concept Steerability 2">
 </p>
+
+### 3. Concept Interpolation (Fine-Grained Control)
+
+* Some Examples from Reproduction
+
+<p align="center">
+    <img src="assets/3.png" width="90%" alt="Concept Interpolation">
+</p>
+
+### 4. Concept Accuracy (Alignment)
+
+* Reproduction on StyleGAN2 backbone: Our Result (Paper Result)
+
+    | Accuracy (%)      | CUB | CelebA-HQ|
+    |-------------|---------------------|-------------|
+    | **CB-AE**   | 74.97 (81.33)               | 92.08 (86.04)        |
+    | **CC**      | 83.08 (81.11)        | 93.63 (83.57)        |
 
 ## Sources
 
@@ -163,7 +183,7 @@ We have provided three extension experiments in jupyter notebook format:
 
 A. Kulkarni, G. Yan, C. Sun, T. Oikarinen, and T.-W. Weng, [Interpretable Generative Models through Post-hoc Concept Bottlenecks](https://arxiv.org/abs/2503.19377), CVPR 2025
 
-```
+```txt
 @inproceedings{kulkarni2025interpretable
     title={Interpretable Generative Models through Post-hoc Concept Bottlenecks},
     author={Kulkarni, Akshay and Yan, Ge and Sun, Chung-En and Oikarinen, Tuomas and Weng, Tsui-Wei},
